@@ -5,6 +5,15 @@ from src.main.python.classifier import Classifier
 from src.main.python.puLearning import PuLearning
 
 
+co_step = None
+
+
+def get_data():
+    # load dataframe
+    df_path = configuration.input_dir + "/" + configuration.config['General']['input_df_file']
+    return pd.read_pickle(df_path)
+
+
 class CoTraining:
     """
     The Context defines the interface of interest to clients.
@@ -68,17 +77,24 @@ class CoTraining:
     def setup_data(self):
         pass
 
-    def train(self, classifier1: Classifier, classifier2: Classifier):
+    def train(self):
         """
         The Context delegates some work to the Strategy object instead of
         implementing multiple versions of the algorithm on its own.
         """
+        # read dataframe from file
+        dataframe = get_data()
+        global co_step
+        print(configuration.config)
+        a = configuration.config['General']['steps_of_cotraining']
+        for i in range(int(configuration.config['General']['steps_of_cotraining'])):
+            co_step = f"{i}_1" # 1 for first classifier
+            pulearning1 = PuLearning(self._classifier1)
+            pulearning1.setup(dataframe)
 
-        for i in range(configuration.config['General']['steps_of_coTraining']):
-            pulearning1 = PuLearning(classifier1)
-            pulearning1.setup_data()
             pulearning1.train()
-            pulearning2 = PuLearning(classifier2)
+            co_step = f"{i}_2"  # 2 for second classifier
+            pulearning2 = PuLearning(self._classifier2)
             pulearning2.setup_data()
             pulearning2.train()
             # TODO implement

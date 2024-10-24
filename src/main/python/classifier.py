@@ -13,7 +13,7 @@ class Classifier(ABC):
     """
 
     @abstractmethod
-    def setup(self):
+    def setup(self, data: DataFrame, prop: str, TARGET: str):
         pass
 
     @abstractmethod

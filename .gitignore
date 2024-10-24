@@ -1,2 +1,4 @@
 data/input/*
+!data/input/small_synthDF
+!data/input/stabilityDF015
 data/results/*.csv #might need to change with separate directories for 3 experiments.

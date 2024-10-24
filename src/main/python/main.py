@@ -41,12 +41,6 @@ def get_user_input():
     return args.ehull015, args.small_data
 
 
-def get_data():
-    # load dataframe
-    df_path = configuration.input_dir + "/" + configuration.input_df_file
-    return pd.read_pickle(df_path)
-
-
 if __name__ == "__main__":
     # The client code picks a concrete strategy and passes it to the context.
     # The client should be aware of the differences between strategies in order
@@ -62,14 +56,11 @@ if __name__ == "__main__":
     config = configure(ehull015, small_data)
     # more setup needed?
 
-    # read dataframe from file
-    dataframe = get_data()
-
     # setup classifers and pu_learning for them
     alignn_one = Alignn()
-    puLearning_one = PuLearning(alignn_one)
-    puLearning_one.setup(dataframe)
-    alignn_one.setup()
+    #puLearning_one = PuLearning(alignn_one)
+    #puLearning_one.setup(dataframe)
+    #alignn_one.setup()
     alignn_two = Alignn()
 
     # setup co-Training

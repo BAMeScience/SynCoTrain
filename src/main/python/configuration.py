@@ -1,6 +1,14 @@
 import configparser
 import pathlib
 
+ehull015 = None
+small_data = None
+config = None
+project_path = None
+input_dir = None
+result_dir = None
+data_prefix = None
+
 
 def configure(ehull, small):
     set_global_variables(ehull, small)
@@ -17,17 +25,17 @@ def read_config_file():  # Classifier input?
     """
     path = pathlib.Path(__file__).parent.parent.absolute() / "config/config.ini"
     # Create a ConfigParser object
-    config = configparser.ConfigParser()
+    c = configparser.ConfigParser()
 
     # Read the configuration file
-    config.read(path)
+    c.read(path)
 
     # Access values from the configuration file dynamically
     conf = {}
-    for section in config.sections():
+    for section in c.sections():
         section_config = {}
-        for key in config.options(section):
-            section_config[key] = (config.get(section, key))
+        for key in c.options(section):
+            section_config[key] = (c.get(section, key))
         conf[section] = section_config
 
     # Return a dictionary with the retrieved values
@@ -50,7 +58,7 @@ def set_global_variables(ehull, small):
     global project_path
     project_path = pathlib.Path(__file__).parent.parent.parent.parent.absolute()
     global input_dir
-    input_dir = 'data/input'  # old variable propDFpath
+    input_dir = 'data/input'  # old variable propDFpath missing file
     global result_dir
     result_dir = 'data/results'
 
@@ -94,5 +102,5 @@ def current_setup(small_data, experiment, ehull015):
     }
 
     return {"propDFpath": propDFpath, "result_dir": result_dir, "prop": prop,
-            "TARGET": experiment_target_match[experiment], "dataPrefix": data_prefix}
+            "TARGET": experiment_target_match[experiment]}
 # TODO current_setup function from experiment_setup.py
