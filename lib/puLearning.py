@@ -1,12 +1,14 @@
 import pandas as pd
 from pandas import DataFrame
 
-from src.main.python import configuration
-from src.main.python.classifier import Classifier
+from src import configuration
+from lib import coTraining
+from lib.classifier import Classifier
 
 
 experimental_datasize = None
 split_id_dir_path = None
+pu_setup = None
 
 
 class PuLearning:
@@ -49,8 +51,39 @@ class PuLearning:
         pass
 
     def setup(self, data: DataFrame):
-        self.setup_data(data, "synth", "synth")
-        self._classifier.setup(data, "synth", "synth")
+        prop = "synth"
+        self.setup_data(data, prop, prop)
+        self._classifier.setup(data, prop, prop)
+
+        configuration.config['General']['test_ratio']
+        # from alignn_pu_config.py
+        data_dir = configuration.input_dir
+        root_dir = data_dir + "alignn_format"  # TODO set dynamically all alignn: maybe Classifier needs a name or maybe from project structure
+        alignn_config_dir = "pu_alignn/alignn_configs"
+        default_class_config = alignn_config_dir + "/default_class_config.json"
+        class_config_name = alignn_config_dir + f'/class_config_{configuration.data_prefix}co{coTraining.co_step}alignn_{prop}.json'  # co{coTraining.co_step}alignn = {experiment}
+        pu_config_name = alignn_config_dir + f'/pu_config_{configuration.data_prefix}co{coTraining.co_step}alignn_{prop}.json'  # co{coTraining.co_step}alignn = {experiment}
+
+        # What should be configured in config file?
+        global pu_setup
+        pu_setup = dict()
+        pu_setup["default_class_config"] = default_class_config
+        pu_setup["pu_config_name"] = pu_config_name
+        pu_setup["class_config_name"] = class_config_name
+        pu_setup["data_dir"] = data_dir
+        pu_setup["root_dir"] = root_dir
+        pu_setup["file_format"] = "poscar"
+        pu_setup["keep_data_order"] = False  # old comment: overwrites this attrib in config
+        pu_setup["classification_threshold"] = 0.5  # old comment: also overwrites if present
+        pu_setup["batch_size"] = None
+        pu_setup["output_dir"] = None
+        pu_setup["epochs"] = 120
+        pu_setup["max_num_of_iterations"] = configuration.config['General']['number_of_iterations']
+        pu_setup["start_of_iterations"] = configuration.config['General']['start_iteration']
+        pu_setup["small_data"] = configuration.small_data
+
+        # print(f'New PU Alignn pu_config_{data_prefix}{experiment}_{prop}.json was generated.')
+        # not a file anymore but a global variable
         pass
 
     def setup_data(self, data: DataFrame, prop: str, TARGET: str):  # TODO how to give prop and target nice?
@@ -58,7 +91,7 @@ class PuLearning:
 
         # set path to directory for data for this step and make directory if does not exist
         global split_id_dir_path
-        split_id_dir_path = configuration.project_path / f"{configuration.input_dir}/{configuration.data_prefix}{TARGET}_{prop}"
+        split_id_dir_path = configuration.project_path / f"{configuration.input_dir}/generated/{configuration.data_prefix}{TARGET}_{prop}"
         split_id_dir_path.mkdir(parents=True, exist_ok=True)
 
         # select data
@@ -69,7 +102,7 @@ class PuLearning:
         # TODO test how it looks
         # devide data in experimental data, leaveout data, positive data and save first and third seperately
         experimental_df = data[data[prop] == 1]  # dataframe with prop==1
-        leaveoutdf = experimental_df.sample(frac=float(configuration.config['General']['test_ratio'])*0.5,
+        leaveoutdf = experimental_df.sample(frac=float(configuration.config['General']['test_ratio']) * 0.5,
                                             random_state=4242)  # TODO check if *0.5 is correct: old leaveout_test_portion set in file, frac see later
         positive_df = data[data[TARGET] == 1]  # labeled data
         positive_df = positive_df.drop(index=leaveoutdf.index)  # remove leave-out test data from positives
@@ -99,7 +132,8 @@ class PuLearning:
             unlabeled_shortage = len(traindf1) - len(unlabeled_df)
 
             if unlabeled_shortage > 0:
-                testdf0 = unlabeled_df.sample(n=int(configuration.config['General']['test_ratio'] * max(len(unlabeled_df), len(experimental_df))),
+                testdf0 = unlabeled_df.sample(n=int(
+                    configuration.config['General']['test_ratio'] * max(len(unlabeled_df), len(experimental_df))),
                                               random_state=it + 4)  # some unlabeled test data
                 unlabeled_df = unlabeled_df.drop(index=testdf0.index)  # rest of unlabeled (without test data)
                 # select unlabeled train data

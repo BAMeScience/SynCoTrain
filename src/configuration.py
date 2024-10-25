@@ -14,8 +14,6 @@ def configure(ehull, small):
     set_global_variables(ehull, small)
     global config
     config = read_config_file()
-    input_df_file = config['General']['input_df_file']
-    return config
 
 
 def read_config_file():  # Classifier input?

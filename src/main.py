@@ -3,13 +3,10 @@ from __future__ import annotations
 import argparse
 import os
 
-import pandas as pd
-
-from src.main.python import configuration
-from src.main.python.alignn import Alignn
-from src.main.python.coTraining import CoTraining
-from src.main.python.configuration import configure
-from src.main.python.puLearning import PuLearning
+from src import configuration
+from lib.alignn.alignn import Alignn
+from lib.coTraining import CoTraining
+from src.configuration import configure
 
 
 def get_user_input():
@@ -53,7 +50,7 @@ if __name__ == "__main__":
     # get user input
     ehull015, small_data = get_user_input()
     # read config file and set configurations
-    config = configure(ehull015, small_data)
+    configure(ehull015, small_data)
     # more setup needed?
 
     # setup classifers and pu_learning for them

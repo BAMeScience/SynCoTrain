@@ -1,11 +1,12 @@
 import pandas as pd
 
-from src.main.python import configuration
-from src.main.python.classifier import Classifier
-from src.main.python.puLearning import PuLearning
+from src import configuration
+from lib.classifier import Classifier
+from lib.puLearning import PuLearning
 
 
 co_step = None
+classifier = None
 
 
 def get_data():
@@ -85,15 +86,18 @@ class CoTraining:
         # read dataframe from file
         dataframe = get_data()
         global co_step
+        global classifier
         print(configuration.config)
         a = configuration.config['General']['steps_of_cotraining']
         for i in range(int(configuration.config['General']['steps_of_cotraining'])):
-            co_step = f"{i}_1" # 1 for first classifier
+            co_step = i
+            classifier = 1  # 1 for first classifier
             pulearning1 = PuLearning(self._classifier1)
             pulearning1.setup(dataframe)
 
             pulearning1.train()
-            co_step = f"{i}_2"  # 2 for second classifier
+            co_step = i
+            classifier = 2  # 2 for second classifier
             pulearning2 = PuLearning(self._classifier2)
             pulearning2.setup_data()
             pulearning2.train()
