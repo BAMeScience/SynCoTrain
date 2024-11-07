@@ -6,7 +6,7 @@ from pandas import DataFrame
 from src import configuration
 from lib import coTraining, puLearning
 from lib.classifier import Classifier
-from src.main.resources.crystal_structure_conversion import ase_to_jarvis
+from src.utils.crystal_structure_conversion import ase_to_jarvis
 
 """
 Concrete Strategies implement the algorithm while following the base Strategy
@@ -15,7 +15,34 @@ interface. The interface makes them interchangeable in the Context.
 
 
 class Alignn(Classifier):
+    def __init__(self, config):
+        """
+        Usually, the Context accepts a strategy through the constructor, but
+        also provides a setter to change it at runtime.
+        """
+
+        self._config = config
+
+    @property
+    def configuration(self):
+        """
+        The Context maintains a reference to one of the Strategy objects. The
+        Context does not know the concrete class of a strategy. It should work
+        with all strategies via the Strategy interface.
+        """
+
+        return self.configuration
+
+    @configuration.setter
+    def configuration(self, config):
+        """
+        Usually, the Context allows replacing a Strategy object at runtime.
+        """
+
+        self._config = config
+
     def setup(self, data: DataFrame, prop: str, TARGET: str):
+        a = self._config
         # from method from old pu_data_selection file
         # format data for alignn: digits after comma and Nan values and save in new file
         # return f'Data was prepared in {data_files_dir} directory.'

@@ -9,71 +9,65 @@ co_step = None
 classifier = None
 
 
-def get_data():
-    # load dataframe
-    df_path = configuration.input_dir + "/" + configuration.config['General']['input_df_file']
-    return pd.read_pickle(df_path)
-
-
 class CoTraining:
     """
     The Context defines the interface of interest to clients.
     """
 
-    def __init__(self, classifier1: Classifier, classifier2: Classifier):
+    def __init__(self, pu1: PuLearning, pu2: PuLearning):
         """
         Usually, the Context accepts a strategy through the constructor, but
         also provides a setter to change it at runtime.
         """
 
-        self._classifier1 = classifier1
-        self._classifier2 = classifier2
+        self._pu1 = pu1
+        self._pu2 = pu2
 
     @property
-    def classifiers(self):
+    def pu_classifiers(self):
         """
         The Context maintains a reference to one of the Strategy objects. The
         Context does not know the concrete class of a strategy. It should work
         with all strategies via the Strategy interface.
         """
 
-        return self.first_classifier, self.second_classifier
+        return self.first_pu_classifier, self.second_pu_classifier
 
     @property
-    def first_classifier(self):
+    def first_pu_classifier(self):
         """
         The Context maintains a reference to one of the Strategy objects. The
         Context does not know the concrete class of a strategy. It should work
         with all strategies via the Strategy interface.
         """
 
-        return self._classifier1
+        return self._pu1
 
-    @first_classifier.setter
-    def first_classifier(self, classifier1: Classifier):
+    @first_pu_classifier.setter
+    def first_pu_classifier(self, pu1: PuLearning):
         """
         Usually, the Context allows replacing a Strategy object at runtime.
         """
 
-        self._classifier1 = classifier1
+        self._pu1 = pu1
 
     @property
-    def second_classifier(self):
+    def second_pu_classifier(self):
         """
         The Context maintains a reference to one of the Strategy objects. The
         Context does not know the concrete class of a strategy. It should work
         with all strategies via the Strategy interface.
         """
 
-        return self._classifier2
+        return self._pu2
 
-    @second_classifier.setter
-    def second_classifier(self, classifier2: Classifier):
+    @second_pu_classifier.setter
+    def second_pu_classifier(self, pu2: PuLearning):
         """
         Usually, the Context allows replacing a Strategy object at runtime.
         """
 
-        self._classifier2 = classifier2
+        self._pu2 = pu2
 
     def setup_data(self):
         pass
@@ -85,6 +79,7 @@ class CoTraining:
         """
         # read dataframe from file
         dataframe = get_data()
+
         global co_step
         global classifier
         print(configuration.config)
@@ -92,6 +87,8 @@ class CoTraining:
         for i in range(int(configuration.config['General']['steps_of_cotraining'])):
             co_step = i
             classifier = 1  # 1 for first classifier
+            classifier1 = Classifier()
+
             pulearning1 = PuLearning(self._classifier1)
             pulearning1.setup(dataframe)
 
@@ -99,6 +96,6 @@ class CoTraining:
             co_step = i
             classifier = 2  # 2 for second classifier
             pulearning2 = PuLearning(self._classifier2)
-            pulearning2.setup_data()
+            setup_data()
             pulearning2.train()
             # TODO implement

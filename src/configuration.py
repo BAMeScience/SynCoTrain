@@ -21,7 +21,7 @@ def read_config_file():  # Classifier input?
     The Context delegates some work to the Strategy object instead of
     implementing multiple versions of the algorithm on its own.
     """
-    path = pathlib.Path(__file__).parent.parent.absolute() / "config/config.ini"
+    path = pathlib.Path(__file__).parent.parent.absolute() / "config.ini"
     # Create a ConfigParser object
     c = configparser.ConfigParser()
 
