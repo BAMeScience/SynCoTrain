@@ -42,24 +42,6 @@ class PuLearning:
 
         self._classifier = classifier
 
-    @property
-    def classifier(self):
-        """
-        The Context maintains a reference to one of the Strategy objects. The
-        Context does not know the concrete class of a strategy. It should work
-        with all strategies via the Strategy interface.
-        """
-
-        return self.classifier
-
-    @classifier.setter
-    def classifier(self, classifier: Classifier):
-        """
-        Usually, the Context allows replacing a Strategy object at runtime.
-        """
-
-        self._classifier = classifier
-
     def train(self, data: DataFrame):
         number_of_iterations = configuration.config['PuLearning']['number_of_iterations']  # T
 

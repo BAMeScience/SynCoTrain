@@ -23,24 +23,6 @@ class Alignn(Classifier):
 
         self._config = config
 
-    @property
-    def configuration(self):
-        """
-        The Context maintains a reference to one of the Strategy objects. The
-        Context does not know the concrete class of a strategy. It should work
-        with all strategies via the Strategy interface.
-        """
-
-        return self.configuration
-
-    @configuration.setter
-    def configuration(self, config):
-        """
-        Usually, the Context allows replacing a Strategy object at runtime.
-        """
-
-        self._config = config
-
     def setup(self, data: DataFrame, prop: str, TARGET: str):
         a = self._config
         # from method from old pu_data_selection file

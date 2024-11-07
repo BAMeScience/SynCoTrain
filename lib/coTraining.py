@@ -23,52 +23,6 @@ class CoTraining:
         self._pu1 = pu1
         self._pu2 = pu2
 
-    @property
-    def pu_classifiers(self):
-        """
-        The Context maintains a reference to one of the Strategy objects. The
-        Context does not know the concrete class of a strategy. It should work
-        with all strategies via the Strategy interface.
-        """
-
-        return self.first_pu_classifier, self.second_pu_classifier
-
-    @property
-    def first_pu_classifier(self):
-        """
-        The Context maintains a reference to one of the Strategy objects. The
-        Context does not know the concrete class of a strategy. It should work
-        with all strategies via the Strategy interface.
-        """
-
-        return self._pu1
-
-    @first_pu_classifier.setter
-    def first_pu_classifier(self, pu1: PuLearning):
-        """
-        Usually, the Context allows replacing a Strategy object at runtime.
-        """
-
-        self._pu1 = pu1
-
-    @property
-    def second_pu_classifier(self):
-        """
-        The Context maintains a reference to one of the Strategy objects. The
-        Context does not know the concrete class of a strategy. It should work
-        with all strategies via the Strategy interface.
-        """
-
-        return self._pu2
-
-    @second_pu_classifier.setter
-    def second_pu_classifier(self, pu2: PuLearning):
-        """
-        Usually, the Context allows replacing a Strategy object at runtime.
-        """
-
-        self._pu2 = pu2
-
     def setup_data(self):
         pass
 
