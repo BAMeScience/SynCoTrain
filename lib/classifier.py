@@ -13,15 +13,19 @@ class Classifier(ABC):
     """
 
     @abstractmethod
-    def setup(self, data: DataFrame, prop: str, TARGET: str):
+    def setup(self, data: DataFrame):
+        # TODO no input needed?
         pass
 
     @abstractmethod
-    def fit(self):
+    def fit(self, X, y):
+        # TODO is y a dataframe?
         # input: X data and y labels
-        pass # output model?
+        pass
 
     @abstractmethod
-    def predict(self, data: DataFrame):
+    def predict(self, data):
         # input X unlabeled Data
-        pass # output y predicted labels
+        # TODO is this needed here?
+        y = None  # TODO DataFrame?
+        return y

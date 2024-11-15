@@ -54,7 +54,7 @@ def set_global_variables(ehull, small):
 
     # set global paths for project, input data and results
     global project_path
-    project_path = pathlib.Path(__file__).parent.parent.parent.parent.absolute()
+    project_path = pathlib.Path(__file__).parent.parent.absolute()
     global input_dir
     input_dir = 'data/input'  # old variable propDFpath missing file
     global result_dir
@@ -102,3 +102,6 @@ def current_setup(small_data, experiment, ehull015):
     return {"propDFpath": propDFpath, "result_dir": result_dir, "prop": prop,
             "TARGET": experiment_target_match[experiment]}
 # TODO current_setup function from experiment_setup.py
+
+#  prop = Synth/stability
+#  target = label = y column
