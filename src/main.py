@@ -3,7 +3,6 @@ from __future__ import annotations
 import argparse
 import os
 
-import numpy as np
 import pandas as pd
 from jarvis.db.jsonutils import loadjson, dumpjson
 from pandas import DataFrame
@@ -46,7 +45,8 @@ def get_user_input():
 
 def get_data():
     # load dataframe
-    df_path = configuration.input_dir + "/new/" + configuration.config['General']['input_df_file']
+    #df_path = configuration.input_dir + "/new/" + configuration.config['General']['input_df_file']
+    df_path = configuration.input_dir + "/" + configuration.config['General']['input_df_file']
     return pd.read_pickle(df_path)
 
 
@@ -62,15 +62,15 @@ if __name__ == "__main__":
     # more setup needed?
 
     # read dataframe
-    df = get_data()  # TODO whats the problem?????
+    df = get_data()
 
     ##########TEST##############
-    # df_path = configuration.input_dir + "/new/" + configuration.config['General']['input_df_file']
+    # df_path = configuration.input_dir + "/" + configuration.config['General']['input_df_file']
     # df = pd.read_pickle(df_path)
     # df_new = df[['material_id', 'atoms', 'formation_energy_per_atom', 'energy_above_hull', 'synth']]#.head(100)
     # df_new.to_pickle(configuration.input_dir + "/new/" + configuration.config['General']['input_df_file'])
     # setup_data(df)
-    #a = df[['material_id', 'atoms', 'synth']]
+    #a = df[['synth']]
     #prepare_data(a)
     #set_config_file(1, 0.8,0.1,0.1)
     #x = 0

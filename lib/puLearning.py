@@ -5,6 +5,8 @@ from pandas import DataFrame
 from src import configuration
 from lib.classifier import Classifier
 
+iteration = None
+
 
 def setup_data(unlabeled_df, positive_df):  # TODO set random_states?
     test_ratio = float(configuration.config['PuLearning']['test_ratio'])
@@ -39,6 +41,7 @@ class PuLearning:
         self._classifier = classifier
 
     def train(self, data: DataFrame):  # TODO dont use names of columns, give it in config file
+        self._classifier.setup(data)
         number_of_iterations = int(configuration.config['PuLearning']['number_of_iterations'])  # T
 
         positive_df = data[data['synth'] == 1]  # P = experimental data
@@ -50,13 +53,17 @@ class PuLearning:
 
         sum_predict = pd.DataFrame(0, index=np.arange(data['synth'].size), columns=['synth'])
         for i in range(number_of_iterations):
+            global iteration
+            iteration = i
             test_df, train_df, unlabeled_predict_df = setup_data(unlabeled_df, positive_df)
             test_df = pd.concat([test_df, leaveout_df])
-            self._classifier.fit(train_df[['material_id', 'atoms']],
+            self._classifier.fit(train_df[['material_id', 'atoms']],  # TODO call new instance of alignn every time
                                  train_df[['synth']])
             y_test = self._classifier.predict(test_df[['material_id', 'atoms']])  # TODO how to evaluate test data
             y = self._classifier.predict(unlabeled_predict_df)
             sum_predict.insert(1, f"{i}", y, True)
             sum_predict['synth'] = sum_predict[['synth', f"{i}"]].sum(axis=1)
-        sum_predict = sum_predict['synth']
-        # next divide with number_of_iterations and set threshold
+        # divide with number_of_iterations and set threshold
+        sum_predict = sum_predict['synth'].div(number_of_iterations).round(2)  # TODO not tested from here
+        sum_predict.clip_upper(float(configuration.config['PuLearning']['prediction_threshold']))
+
