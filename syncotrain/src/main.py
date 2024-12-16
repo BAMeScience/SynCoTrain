@@ -7,7 +7,7 @@ import pandas as pd
 from jarvis.db.jsonutils import loadjson, dumpjson
 from pandas import DataFrame
 
-from lib.puLearning import PuLearning
+from ..lib.puLearning import PuLearning
 from src import configuration
 from lib.alignn.classifier_alignn import Alignn
 from lib.coTraining import CoTraining
