@@ -12,10 +12,10 @@ class Classifier(ABC):
     Strategies.
     """
 
-    @abstractmethod
-    def setup(self, data: DataFrame):
-        # TODO no input needed?
-        pass
+    # @abstractmethod
+    # def setup(self, data: DataFrame):
+    #     # TODO no input needed?
+    #     pass
 
     @abstractmethod
     def fit(self, X, y):

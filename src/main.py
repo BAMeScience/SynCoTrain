@@ -45,8 +45,8 @@ def get_user_input():
 
 def get_data():
     # load dataframe
-    #df_path = configuration.input_dir + "/new/" + configuration.config['General']['input_df_file']
-    df_path = configuration.input_dir + "/" + configuration.config['General']['input_df_file']
+    df_path = configuration.input_dir + "/new/" + configuration.config['General']['input_df_file']
+    #df_path = configuration.input_dir + "/" + configuration.config['General']['input_df_file']
     return pd.read_pickle(df_path)
 
 
@@ -67,7 +67,7 @@ if __name__ == "__main__":
     ##########TEST##############
     # df_path = configuration.input_dir + "/" + configuration.config['General']['input_df_file']
     # df = pd.read_pickle(df_path)
-    # df_new = df[['material_id', 'atoms', 'formation_energy_per_atom', 'energy_above_hull', 'synth']]#.head(100)
+    # df_new = df[['material_id', 'atoms', 'formation_energy_per_atom', 'energy_above_hull', 'synth']].sample(frac=0.05, random_state=42)
     # df_new.to_pickle(configuration.input_dir + "/new/" + configuration.config['General']['input_df_file'])
     # setup_data(df)
     #a = df[['synth']]

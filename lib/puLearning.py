@@ -41,7 +41,7 @@ class PuLearning:
         self._classifier = classifier
 
     def train(self, data: DataFrame):  # TODO dont use names of columns, give it in config file
-        self._classifier.setup(data)
+#        self._classifier.setup(data)
         number_of_iterations = int(configuration.config['PuLearning']['number_of_iterations'])  # T
 
         positive_df = data[data['synth'] == 1]  # P = experimental data
@@ -57,9 +57,9 @@ class PuLearning:
             iteration = i
             test_df, train_df, unlabeled_predict_df = setup_data(unlabeled_df, positive_df)
             test_df = pd.concat([test_df, leaveout_df])
-            self._classifier.fit(train_df[['material_id', 'atoms']],  # TODO call new instance of alignn every time
-                                 train_df[['synth']])
-            y_test = self._classifier.predict(test_df[['material_id', 'atoms']])  # TODO how to evaluate test data
+            self._classifier.fit(train_df['atoms'],  # TODO call new instance of alignn every time
+                                 train_df['synth'])
+            y_test = self._classifier.predict(test_df['atoms'])  # TODO how to evaluate test data
             y = self._classifier.predict(unlabeled_predict_df)
             sum_predict.insert(1, f"{i}", y, True)
             sum_predict['synth'] = sum_predict[['synth', f"{i}"]].sum(axis=1)
