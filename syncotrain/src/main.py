@@ -7,11 +7,11 @@ import pandas as pd
 from jarvis.db.jsonutils import loadjson, dumpjson
 from pandas import DataFrame
 
-from ..lib.puLearning import PuLearning
-from src import configuration
-from lib.alignn.classifier_alignn import Alignn
-from lib.coTraining import CoTraining
-from src.configuration import configure
+from syncotrain.lib.puLearning import PuLearning
+from syncotrain.src import configuration
+from syncotrain.lib.alignn.classifier_alignn import Alignn
+from syncotrain.lib.coTraining import CoTraining
+from syncotrain.src.configuration import configure
 
 
 def get_user_input():
@@ -62,13 +62,13 @@ if __name__ == "__main__":
     # more setup needed?
 
     # read dataframe
-    df = get_data()
+    #df = get_data()
 
     ##########TEST##############
-    # df_path = configuration.input_dir + "/" + configuration.config['General']['input_df_file']
-    # df = pd.read_pickle(df_path)
-    # df_new = df[['material_id', 'atoms', 'formation_energy_per_atom', 'energy_above_hull', 'synth']].sample(frac=0.05, random_state=42)
-    # df_new.to_pickle(configuration.input_dir + "/new/" + configuration.config['General']['input_df_file'])
+    df_path = configuration.input_dir + "/" + configuration.config['General']['input_df_file']
+    df = pd.read_pickle(df_path)
+    df_new = df[['material_id', 'atoms', 'formation_energy_per_atom', 'energy_above_hull', 'synth']].sample(frac=0.1, random_state=42)
+    df_new.to_pickle(configuration.input_dir + "/new/" + configuration.config['General']['input_df_file'])
     # setup_data(df)
     #a = df[['synth']]
     #prepare_data(a)
@@ -79,7 +79,7 @@ if __name__ == "__main__":
     # setup classifers and pu_learning for them
     alignn_one = Alignn('Classifier1')
     puLearning_one = PuLearning(alignn_one)
-    puLearning_one.train(df)
+    puLearning_one.train(df_new)
 
 
     # setup co-Training

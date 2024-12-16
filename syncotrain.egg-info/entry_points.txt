@@ -1,0 +1,2 @@
+[console_scripts]
+main = syncotrain.src.main:main

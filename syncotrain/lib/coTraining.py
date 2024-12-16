@@ -2,9 +2,9 @@ from typing import List
 
 import pandas as pd
 
-from src import configuration
-from lib.classifier import Classifier
-from lib.puLearning import PuLearning
+from syncotrain.src import configuration
+from syncotrain.lib.classifier import Classifier
+from syncotrain.lib.puLearning import PuLearning
 
 
 co_step = None

@@ -18,13 +18,13 @@ from jarvis.core.atoms import Atoms, ase_to_atoms
 from jarvis.core.graphs import Graph
 from jarvis.db.jsonutils import loadjson
 from pandas import DataFrame
-
-from lib import puLearning
-from src import configuration
-from lib.classifier import Classifier
-from src.utils.crystal_structure_conversion import ase_to_jarvis  # TODO whats wrong here?
 from alignn.data import get_train_val_loaders
 from alignn.train import train_dgl
+
+from syncotrain.lib import puLearning
+from syncotrain.src import configuration
+from syncotrain.lib.classifier import Classifier
+from syncotrain.src.utils.crystal_structure_conversion import ase_to_jarvis  # TODO whats wrong here?
 
 """
 Concrete Strategies implement the algorithm while following the base Strategy
@@ -37,7 +37,7 @@ output_dir = None
 
 
 def get_config(i, train_ratio, val_ratio, test_ratio):  # TODO how to call Classifier1,...?
-    config = loadjson('lib/alignn/default_class_config.json')
+    config = loadjson('syncotrain/lib/alignn/default_class_config.json')  # TODO
     config["output_dir"] = configuration.result_dir + "/tmp/" + configuration.config['General']['input_df_file'] + f"/classifier_{i}/{puLearning.iteration}"
 
     classifier = configuration.config[f'Classifier{i}']
@@ -140,6 +140,8 @@ def get_torch_dataset(
     if y is None:
         y = float('nan')
 
+    bla = X
+    bli = y
     df = pd.DataFrame({'X': X, 'y': y, id_tag: range(len(X))})
 
     # Suppress annoying output to stdout
@@ -180,14 +182,14 @@ class Alignn(Classifier):
         config = get_config(1, 1 - val_ratio, val_ratio, 0)
 
         train_loader = get_dataloader(config, X, y=y)
-        test_dummy = get_dataloader(config, X)
+        #test_dummy = get_dataloader(config, X)
 
         try:
             with contextlib.redirect_stdout(io.StringIO()):
                 train_dgl(config=config, model=self._model, train_val_test_loaders=[
                     train_loader,  # Training set
                     train_loader,  # Validataion set (TODO)   # TODO how to handle non natural numbers?
-                    test_dummy,  # Test set # TODO set NONE when bug in alignn is fixed
+                    train_loader,  # Test set # TODO set NONE when bug in alignn is fixed
                     train_loader.dataset.prepare_batch])
 
             # Load best model from file
@@ -210,7 +212,7 @@ class Alignn(Classifier):
 
         for batch in predict_loader:
             result = torch.concat(
-                (result, self.model(batch[0:2])),
+                (result, self._model(batch[0:2])),
                 axis=0
             )
 

@@ -2,8 +2,8 @@ import numpy as np
 import pandas as pd
 from pandas import DataFrame
 
-from src import configuration
-from lib.classifier import Classifier
+from syncotrain.src import configuration
+from syncotrain.lib.classifier import Classifier
 
 iteration = None
 
@@ -55,15 +55,16 @@ class PuLearning:
         for i in range(number_of_iterations):
             global iteration
             iteration = i
+            print("Iteration: " , i)
             test_df, train_df, unlabeled_predict_df = setup_data(unlabeled_df, positive_df)
             test_df = pd.concat([test_df, leaveout_df])
             self._classifier.fit(train_df['atoms'],  # TODO call new instance of alignn every time
                                  train_df['synth'])
             y_test = self._classifier.predict(test_df['atoms'])  # TODO how to evaluate test data
-            y = self._classifier.predict(unlabeled_predict_df)
-            sum_predict.insert(1, f"{i}", y, True)
-            sum_predict['synth'] = sum_predict[['synth', f"{i}"]].sum(axis=1)
+            #y = self._classifier.predict(unlabeled_predict_df)
+            #sum_predict.insert(1, f"{i}", y, True)
+            #sum_predict['synth'] = sum_predict[['synth', f"{i}"]].sum(axis=1)
         # divide with number_of_iterations and set threshold
-        sum_predict = sum_predict['synth'].div(number_of_iterations).round(2)  # TODO not tested from here
-        sum_predict.clip_upper(float(configuration.config['PuLearning']['prediction_threshold']))
+        #sum_predict = sum_predict['synth'].div(number_of_iterations).round(2)  # TODO not tested from here
+        #sum_predict.clip_upper(float(configuration.config['PuLearning']['prediction_threshold']))
 

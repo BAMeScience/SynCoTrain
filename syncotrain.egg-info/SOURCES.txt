@@ -1,0 +1,10 @@
+LICENSE
+README.md
+pyproject.toml
+syncotrain/__init__.py
+syncotrain.egg-info/PKG-INFO
+syncotrain.egg-info/SOURCES.txt
+syncotrain.egg-info/dependency_links.txt
+syncotrain.egg-info/entry_points.txt
+syncotrain.egg-info/top_level.txt
+syncotrain/lib/alignn/default_class_config.json

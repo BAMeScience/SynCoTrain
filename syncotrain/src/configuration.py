@@ -21,7 +21,7 @@ def read_config_file():  # Classifier input?
     The Context delegates some work to the Strategy object instead of
     implementing multiple versions of the algorithm on its own.
     """
-    path = pathlib.Path(__file__).parent.parent.absolute() / "config.ini"
+    path = pathlib.Path(__file__).parent.parent.parent.absolute() / "config.ini"
     # Create a ConfigParser object
     c = configparser.ConfigParser()
 
@@ -54,7 +54,7 @@ def set_global_variables(ehull, small):
 
     # set global paths for project, input data and results
     global project_path
-    project_path = pathlib.Path(__file__).parent.parent.absolute()
+    project_path = pathlib.Path(__file__).parent.parent.parent.absolute()
     global input_dir
     input_dir = 'data/input'  # old variable propDFpath missing file
     global result_dir
