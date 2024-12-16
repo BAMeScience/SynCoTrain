@@ -1,0 +1,26 @@
+[build-system]
+requires = ["setuptools>=42", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "syncotrain"
+version = "0.1.0"
+description = "PU-Learning with Co-Training of SchNet and ALIGNN for Crystal Synthesizability Prediction"
+authors = [
+    {name = "Angelina Jellinek"}
+]
+readme = "README.md"
+requires-python = ">=3.10"
+keywords = ["crystal", "synthesizability", "machine learning", "co-training"]
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent"
+]
+
+[project.scripts]
+main = "syncotrain.src.main:main"
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["syncotrain"]
