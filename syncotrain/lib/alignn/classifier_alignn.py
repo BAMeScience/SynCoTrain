@@ -220,8 +220,11 @@ class Alignn(Classifier):
         # for the two classes. Return probability for class `1` as
         # pandas Series
         result = result[:, 1].exp()
-        result = pd.Series(result.detach().numpy())
-        return result
+        data = X.to_frame(name='X')
+        data.insert(1, 'y', result.detach().numpy(), True)
+        return data['y']
+        #result = pd.Series(result.detach().numpy())
+        #return result
 
 
 

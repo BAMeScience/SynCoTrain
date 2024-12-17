@@ -4,8 +4,6 @@ import argparse
 import os
 
 import pandas as pd
-from jarvis.db.jsonutils import loadjson, dumpjson
-from pandas import DataFrame
 
 from syncotrain.lib.puLearning import PuLearning
 from syncotrain.src import configuration
@@ -49,6 +47,13 @@ def get_data():
     #df_path = configuration.input_dir + "/" + configuration.config['General']['input_df_file']
     return pd.read_pickle(df_path)
 
+def get_smaller_data():
+    df_path = configuration.input_dir + "/" + configuration.config['General']['input_df_file']
+    df = pd.read_pickle(df_path)
+    df_new = df[['material_id', 'atoms', 'formation_energy_per_atom', 'energy_above_hull', 'synth']].sample(frac=0.1, random_state=42)
+    df_new.to_pickle(configuration.input_dir + "/new/" + configuration.config['General']['input_df_file'])
+    return df_new
+
 
 if __name__ == "__main__":
     # The client code picks a concrete strategy and passes it to the context.
@@ -59,30 +64,21 @@ if __name__ == "__main__":
     ehull015, small_data = get_user_input()
     # read config file and set configurations
     configure(ehull015, small_data)
-    # more setup needed?
 
     # read dataframe
-    #df = get_data()
+    df = get_data()
+    #df = get_smaller_data()
 
-    ##########TEST##############
-    df_path = configuration.input_dir + "/" + configuration.config['General']['input_df_file']
-    df = pd.read_pickle(df_path)
-    df_new = df[['material_id', 'atoms', 'formation_energy_per_atom', 'energy_above_hull', 'synth']].sample(frac=0.1, random_state=42)
-    df_new.to_pickle(configuration.input_dir + "/new/" + configuration.config['General']['input_df_file'])
-    # setup_data(df)
-    #a = df[['synth']]
-    #prepare_data(a)
-    #set_config_file(1, 0.8,0.1,0.1)
-    #x = 0
-    ############################
-
-    # setup classifers and pu_learning for them
+    # setup classifers
     alignn_one = Alignn('Classifier1')
+    alignn_two = Alignn('Classifier2')
+
+    # setup pu_learning for them
     puLearning_one = PuLearning(alignn_one)
-    puLearning_one.train(df_new)
+    puLearning_two = PuLearning(alignn_two)
 
+    # setup co_training
+    co_training = CoTraining(puLearning_one, puLearning_two)
 
-    # setup co-Training
-    # coTraining = CoTraining(PuLearning(alignn_one), PuLearning(alignn_two))
-    # coTraining.setup_data()
-    # coTraining.train()
+    # start training
+    results = co_training.train(df['atoms'],df['synth'])
