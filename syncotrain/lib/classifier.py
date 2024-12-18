@@ -1,6 +1,6 @@
 from abc import ABC, abstractmethod
 
-from pandas import DataFrame
+import pandas as pd
 
 
 class Classifier(ABC):
@@ -12,20 +12,10 @@ class Classifier(ABC):
     Strategies.
     """
 
-    # @abstractmethod
-    # def setup(self, data: DataFrame):
-    #     # TODO no input needed?
-    #     pass
-
     @abstractmethod
-    def fit(self, X, y):
-        # TODO is y a dataframe?
-        # input: X data and y labels
+    def fit(self, X: pd.Series, y: pd.Series):
         pass
 
     @abstractmethod
-    def predict(self, data):
-        # input X unlabeled Data
-        # TODO is this needed here?
-        y = None  # TODO DataFrame?
-        return y
+    def predict(self, X: pd.Series):
+        return

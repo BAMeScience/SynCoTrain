@@ -1,11 +1,7 @@
-import numpy as np
 import pandas as pd
-from pandas import DataFrame
 
 from syncotrain.src import configuration
 from syncotrain.lib.classifier import Classifier
-
-iteration = None
 
 
 def setup_data(unlabeled_df, positive_df):  # TODO set random_states?
@@ -40,7 +36,7 @@ class PuLearning:
 
         self._classifier = classifier
 
-    def train(self, X: pd.Series, y: pd.Series):  # TODO dont use names of columns, give it in config file
+    def train(self, X: pd.Series, y: pd.Series):
         number_of_iterations = int(configuration.config['PuLearning']['number_of_iterations'])  # T
 
         data = X.to_frame(name='X')
@@ -56,15 +52,13 @@ class PuLearning:
         for col in sum_predict.columns:
             sum_predict[col].values[:] = 0
         for i in range(number_of_iterations):
-            global iteration
-            iteration = i
             print("Start Iteration: " , i)
             test_df, train_df, unlabeled_predict_df = setup_data(unlabeled_df, positive_df)
             test_df = pd.concat([test_df, leaveout_df])
             self._classifier.fit(train_df['X'], train_df['y'])  # TODO call new instance of alignn every time
             # y_test = self._classifier.predict(test_df['X'])  # TODO how to evaluate test data
             prediction = self._classifier.predict(unlabeled_predict_df['X'])
-            sum_predict.insert(1, f"{i}", prediction, True)  # TODO debug here: ids are lost and needed for sum_prediction. Maybe can use unlabeled_predict_df['X]?
+            sum_predict.insert(1, f"{i}", prediction, True)
             sum_predict['y'] = sum_predict[['y', f"{i}"]].sum(axis=1)
         # divide with number_of_iterations and set threshold
         sum_predict = sum_predict['y'].div(number_of_iterations).round(2)
