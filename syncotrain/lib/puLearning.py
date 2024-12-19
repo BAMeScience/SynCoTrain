@@ -1,3 +1,5 @@
+import copy
+
 import pandas as pd
 
 from syncotrain.src import configuration
@@ -39,28 +41,52 @@ class PuLearning:
     def train(self, X: pd.Series, y: pd.Series):
         number_of_iterations = int(configuration.config['PuLearning']['number_of_iterations'])  # T
 
+        # combine X and y into a data frame
         data = X.to_frame(name='X')
         data.insert(1, 'y', y, True)
+
+        # split in positive and negative (unlabeled) data
         positive_df = data[data['y'] == 1]  # P = experimental data
         unlabeled_df = data[data['y'] == 0]  # U
 
+        # select some leaveout data and separate them from the positive data
         leaveout_test_ratio = float(configuration.config['PuLearning']['leaveout_test_ratio'])
         leaveout_df = positive_df.sample(frac=leaveout_test_ratio, random_state=4242)
         positive_df = positive_df.drop(index=leaveout_df.index)
 
-        sum_predict = y.to_frame(name='y')
-        for col in sum_predict.columns:
-            sum_predict[col].values[:] = 0
+        # initialise prediction_score with ids and initially set all to zero
+        prediction_score = y.to_frame(name='y')
+        for col in prediction_score.columns:
+            prediction_score[col].values[:] = 0
+
+        # start iterations for pu-learning
         for i in range(number_of_iterations):
             print("Start Iteration: " , i)
+
+            # make a new copy of classifier for each iteration
+            new_classifier = copy.deepcopy(self._classifier)
+
+            # split data in test, train data and data that needs to be predicted
             test_df, train_df, unlabeled_predict_df = setup_data(unlabeled_df, positive_df)
+
+            # add leaveout data to test data
             test_df = pd.concat([test_df, leaveout_df])
-            self._classifier.fit(train_df['X'], train_df['y'])  # TODO call new instance of alignn every time
-            # y_test = self._classifier.predict(test_df['X'])  # TODO how to evaluate test data
-            prediction = self._classifier.predict(unlabeled_predict_df['X'])
-            sum_predict.insert(1, f"{i}", prediction, True)
-            sum_predict['y'] = sum_predict[['y', f"{i}"]].sum(axis=1)
-        # divide with number_of_iterations and set threshold
-        sum_predict = sum_predict['y'].div(number_of_iterations).round(2)
-        results = (sum_predict > float(configuration.config['PuLearning']['prediction_threshold'])).astype(int)
+
+            # train classifier with train data
+            new_classifier.fit(train_df['X'], train_df['y'])
+
+            # test TODO
+            # y_test = new_classifier.predict(test_df['X'])  # TODO how to evaluate test data
+
+            # get predictions for unlabeled data
+            prediction = new_classifier.predict(unlabeled_predict_df['X'])
+
+            # use predictions to add up a score
+            prediction_score.insert(1, f"{i}", prediction, True)
+            prediction_score['y'] = prediction_score[['y', f"{i}"]].sum(axis=1)
+
+        # divide by number_of_iterations and decide based on the threshold
+        prediction_score = prediction_score['y'].div(number_of_iterations).round(2)
+        results = (prediction_score > float(configuration.config['PuLearning']['prediction_threshold'])).astype(int)
+
         return results

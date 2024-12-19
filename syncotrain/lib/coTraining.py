@@ -24,6 +24,8 @@ class CoTraining:
         implementing multiple versions of the algorithm on its own.
         """
         for i in range(int(configuration.config['CoTraining']['steps_of_cotraining'])):
+            print("Start CoTraining step: " , i)
             y = self._pu1.train(X, y)
             y = self._pu2.train(X, y)
+            # TODO save after each pu-learning
         return y
