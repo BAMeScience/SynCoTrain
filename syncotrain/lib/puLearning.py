@@ -6,13 +6,14 @@ from syncotrain.src import configuration
 from syncotrain.lib.classifier import Classifier
 
 
-def setup_data(unlabeled_df, positive_df):  # TODO set random_states?
+def setup_data(random_factor, unlabeled_df, positive_df):  # TODO set random_states?
     test_ratio = float(configuration.config['PuLearning']['test_ratio'])
 
-    negative_df = unlabeled_df.sample(n=positive_df['y'].size, random_state=1)
+    # select as much negative data as positive
+    negative_df = unlabeled_df.sample(n=positive_df['y'].size, random_state=1+random_factor)
 
-    negative_test_df = negative_df.sample(frac=test_ratio, random_state=2)
-    positive_test_df = positive_df.sample(frac=test_ratio, random_state=3)
+    negative_test_df = negative_df.sample(frac=test_ratio, random_state=2+random_factor)
+    positive_test_df = positive_df.sample(frac=test_ratio, random_state=3+random_factor)
 
     positive_train_df = positive_df.drop(index=positive_test_df.index)
     negative_train_df = negative_df.drop(index=negative_test_df.index)
@@ -55,7 +56,8 @@ class PuLearning:
         positive_df = positive_df.drop(index=leaveout_df.index)
 
         # initialise prediction_score with ids and initially set all to zero
-        prediction_score = y.to_frame(name='y')
+        y_for_frame = copy.deepcopy(y)
+        prediction_score = y_for_frame.to_frame(name='y')
         for col in prediction_score.columns:
             prediction_score[col].values[:] = 0
 
@@ -67,7 +69,7 @@ class PuLearning:
             new_classifier = copy.deepcopy(self._classifier)
 
             # split data in test, train data and data that needs to be predicted
-            test_df, train_df, unlabeled_predict_df = setup_data(unlabeled_df, positive_df)
+            test_df, train_df, unlabeled_predict_df = setup_data(i, unlabeled_df, positive_df)
 
             # add leaveout data to test data
             test_df = pd.concat([test_df, leaveout_df])
@@ -75,8 +77,9 @@ class PuLearning:
             # train classifier with train data
             new_classifier.fit(train_df['X'], train_df['y'])
 
-            # test TODO
-            # y_test = new_classifier.predict(test_df['X'])  # TODO how to evaluate test data
+            # test performance with test data
+            # y_test = new_classifier.predict(test_df['X'])
+            # test_results = test_performance(y_test)  # TODO how to evaluate test data and what to do with leaveout data
 
             # get predictions for unlabeled data
             prediction = new_classifier.predict(unlabeled_predict_df['X'])
