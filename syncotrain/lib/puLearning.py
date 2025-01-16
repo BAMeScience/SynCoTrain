@@ -1,6 +1,7 @@
 import copy
 
 import pandas as pd
+from sklearn.metrics import roc_auc_score
 
 from syncotrain.src import configuration
 from syncotrain.lib.classifier import Classifier
@@ -26,18 +27,34 @@ def setup_data(random_factor, unlabeled_df, positive_df):  # TODO set random_sta
     return test_df, train_df, unlabeled_predict_df
 
 
+def test_performance(y: pd.Series, gt: pd.Series):
+    frame = y.to_frame(name='y')
+    frame.insert(1, 'gt', gt, True)
+    test_frame = frame.head(frame['y'].size-leaveout_size)
+    test_y = test_frame['y'].to_numpy()
+    test_gt = test_frame['gt'].to_numpy()
+    leaveout_frame = frame.tail(leaveout_size)
+    leaveout_y = leaveout_frame['y'].to_numpy()
+    leaveout_gt = leaveout_frame['gt'].to_numpy()
+
+    test = roc_auc_score(test_gt, test_y)
+    leaveout = roc_auc_score(leaveout_gt, leaveout_y)
+    return [test, leaveout]  # area under roc curve
+
+
 class PuLearning:
     """
     The Context defines the interface of interest to clients.
     """
 
-    def __init__(self, classifier: Classifier):
+    def __init__(self, classifier: Classifier, groundtruth: pd.Series = None):
         """
         Usually, the Context accepts a strategy through the constructor, but
         also provides a setter to change it at runtime.
         """
 
         self._classifier = classifier
+        self._groundtruth = groundtruth
 
     def train(self, X: pd.Series, y: pd.Series):
         number_of_iterations = int(configuration.config['PuLearning']['number_of_iterations'])  # T
@@ -50,16 +67,25 @@ class PuLearning:
         positive_df = data[data['y'] == 1]  # P = experimental data
         unlabeled_df = data[data['y'] == 0]  # U
 
+        size = positive_df['y'].size
+
         # select some leaveout data and separate them from the positive data
         leaveout_test_ratio = float(configuration.config['PuLearning']['leaveout_test_ratio'])
         leaveout_df = positive_df.sample(frac=leaveout_test_ratio, random_state=4242)
         positive_df = positive_df.drop(index=leaveout_df.index)
+
+        # save leaveout indices globally
+        global leaveout_size
+        leaveout_size = leaveout_df['y'].size
 
         # initialise prediction_score with ids and initially set all to zero
         y_for_frame = copy.deepcopy(y)
         prediction_score = y_for_frame.to_frame(name='y')
         for col in prediction_score.columns:
             prediction_score[col].values[:] = 0
+
+        # initialise test_results
+        test_results = []
 
         # start iterations for pu-learning
         for i in range(number_of_iterations):
@@ -77,9 +103,10 @@ class PuLearning:
             # train classifier with train data
             new_classifier.fit(train_df['X'], train_df['y'])
 
-            # test performance with test data
-            # y_test = new_classifier.predict(test_df['X'])
-            # test_results = test_performance(y_test)  # TODO how to evaluate test data and what to do with leaveout data
+            # test performance with test data if ground truth is given
+            if self._groundtruth is not None:
+                y_test = new_classifier.predict(test_df['X'])
+                test_results.append(test_performance(y_test, self._groundtruth))  # TODO how to evaluate test data and what to do with leaveout data
 
             # get predictions for unlabeled data
             prediction = new_classifier.predict(unlabeled_predict_df['X'])
@@ -92,4 +119,4 @@ class PuLearning:
         prediction_score = prediction_score['y'].div(number_of_iterations).round(2)
         results = (prediction_score > float(configuration.config['PuLearning']['prediction_threshold'])).astype(int)
 
-        return results
+        return results, test_results

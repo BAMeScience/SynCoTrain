@@ -14,7 +14,6 @@ from jarvis.core.graphs import Graph
 from jarvis.db.jsonutils import loadjson
 from alignn.train import train_dgl
 
-from syncotrain.lib import puLearning
 from syncotrain.src import configuration
 from syncotrain.lib.classifier import Classifier
 
