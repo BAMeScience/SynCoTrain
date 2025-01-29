@@ -41,6 +41,6 @@ class Forest(Classifier):
         X_new = [ featurizer.featurize(AseAtomsAdaptor.get_structure(x).composition) for x in X ]
         result = self._model.predict_proba(X_new)
         data = X.to_frame(name='X')
-        result_g = torch.from_numpy(np.concatenate(result[0:result.size, 0:1]))
+        result_g = torch.from_numpy(np.concatenate(result[0:result.size, 1:2]))
         data.insert(1, 'y', result_g.detach().numpy(), True)
         return data['y']

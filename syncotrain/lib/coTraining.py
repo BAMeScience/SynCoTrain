@@ -34,11 +34,11 @@ class CoTraining:
 
         y1 = copy.deepcopy(y)
         # y2 = copy.deepcopy(y) # parallel
+        sizey = y1.sum()
 
         test_results = []
-        for i in range(int(configuration.config['CoTraining']['steps_of_cotraining'])*number_of_classifiers):
-            print("Start CoTraining step: " , int(i/2))
-            print("Classifier: " , i%2+1)
+        for i in range(int(configuration.config['CoTraining']['steps_of_cotraining'])):
+            print("Start CoTraining step: " , i)
             # parallel:
             # results1, test_results1 = self._pu1.train(X, y1)
             # results2, test_results2 = self._pu2.train(X, y2)
@@ -51,10 +51,13 @@ class CoTraining:
 
             # one after each other:
             if i%2==0:
-                y1, test_results = self._pu1.train(X, y1)
+                results1, test1 = self._pu1.train(X, y1)
             else:
-                y1, test_results = self._pu2.train(X, y1)
-            test_results.append(test_results)
-            prediction_results.insert(i, f"{int(i/2)}_{i%2+1}", y1, True)
+                results1, test1 = self._pu2.train(X, y1)  # RandomForest liefer 0 positive
+            test_results.append(test1)
+            size = results1.sum()
+            y1 = (results1 + y1).clip(0,1)
+            sizey1 = y1.sum()
+            prediction_results.insert(i, f"{i}", y1, True)
             # TODO save after each pu-learning?
         return prediction_results.drop(columns=['y']), test_results

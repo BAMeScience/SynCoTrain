@@ -67,7 +67,8 @@ class PuLearning:
         positive_df = data[data['y'] == 1]  # P = experimental data
         unlabeled_df = data[data['y'] == 0]  # U
 
-        size = positive_df['y'].size
+        size_pos = positive_df['y'].size
+        size_unl = unlabeled_df['y'].size
 
         # select some leaveout data and separate them from the positive data
         leaveout_test_ratio = float(configuration.config['PuLearning']['leaveout_test_ratio'])
@@ -83,6 +84,8 @@ class PuLearning:
         prediction_score = y_for_frame.to_frame(name='y')
         for col in prediction_score.columns:
             prediction_score[col].values[:] = 0
+
+        all_null = copy.deepcopy(prediction_score)
 
         # initialise test_results
         test_results = []
@@ -117,6 +120,14 @@ class PuLearning:
 
         # divide by number_of_iterations and decide based on the threshold
         prediction_score = prediction_score['y'].div(number_of_iterations).round(2)
-        results = (prediction_score > float(configuration.config['PuLearning']['prediction_threshold'])).astype(int)
+        value = float(configuration.config['PuLearning']['use_top'])
+        selection = prediction_score.nlargest(int(prediction_score.size*value))
+        selection = (selection > 0).astype(int)
+        all_null.insert(1, "r", selection, True)
+        results = all_null[['y', "r"]].sum(axis=1)
+        results = results.astype(int)
 
+        all_size = results.size
+        all_size_ones = results.sum() 
+        
         return results, test_results
