@@ -169,7 +169,7 @@ class Alignn(Classifier):
         config = get_config(self._name, 1 - val_ratio, val_ratio, 0)
 
         train_loader = get_dataloader(config, X, y=y)
-
+        
         try:
             with contextlib.redirect_stdout(io.StringIO()):
                 train_dgl(config=config, model=self._model, train_val_test_loaders=[
@@ -184,7 +184,7 @@ class Alignn(Classifier):
 
         finally:
             if os.path.exists(config.output_dir):
-                shutil.rmtree(config.output_dir)
+                shutil.rmtree(config.output_dir, ignore_errors=True)
 
     def predict(self, X: pd.Series):
         config = get_config(self._name, 0, 0, 1)

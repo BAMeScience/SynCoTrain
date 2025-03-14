@@ -1,4 +1,4 @@
-name: sync
+name: syncotrain
 channels:
   - dglteam/label/cu117  # Add this channel first to ensure compatibility
   - nvidia

@@ -37,6 +37,7 @@ class CoTraining:
         sizey = y1.sum()
 
         test_results = []
+        #leave_results = []
         for i in range(int(configuration.config['CoTraining']['steps_of_cotraining'])):
             print("Start CoTraining step: " , i)
             # parallel:
@@ -51,13 +52,18 @@ class CoTraining:
 
             # one after each other:
             if i%2==0:
-                results1, test1 = self._pu1.train(X, y1)
+                results1, test1, leave = self._pu1.train(X, y1)
             else:
-                results1, test1 = self._pu2.train(X, y1)  # RandomForest liefer 0 positive
+                results1, test1, leave = self._pu2.train(X, y1)  # RandomForest liefer 0 positive
             test_results.append(test1)
+            #leave_results.append(leave)
             size = results1.sum()
             y1 = (results1 + y1).clip(0,1)
             sizey1 = y1.sum()
             prediction_results.insert(i, f"{i}", y1, True)
+            if i == 0:
+                leave_results = leave.to_frame(name='0')
+            else:
+                leave_results.insert(i, f"{i}", leave, True)
             # TODO save after each pu-learning?
-        return prediction_results.drop(columns=['y']), test_results
+        return prediction_results.drop(columns=['y']), test_results, leave_results

@@ -1,4 +1,3 @@
-import os
 import torch
 
 import pandas as pd
@@ -8,7 +7,6 @@ from matminer.featurizers.composition import ElementProperty
 from sklearn.ensemble import RandomForestClassifier
 from pymatgen.io.ase import AseAtomsAdaptor
 
-from syncotrain.src import configuration
 from syncotrain.lib.classifier import Classifier
 
 """

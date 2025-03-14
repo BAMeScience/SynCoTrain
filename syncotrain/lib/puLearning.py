@@ -6,6 +6,8 @@ from sklearn.metrics import roc_auc_score
 from syncotrain.src import configuration
 from syncotrain.lib.classifier import Classifier
 
+leaveout_size = None
+
 
 def setup_data(random_factor, unlabeled_df, positive_df):  # TODO set random_states?
     test_ratio = float(configuration.config['PuLearning']['test_ratio'])
@@ -30,15 +32,25 @@ def setup_data(random_factor, unlabeled_df, positive_df):  # TODO set random_sta
 def test_performance(y: pd.Series, gt: pd.Series):
     frame = y.to_frame(name='y')
     frame.insert(1, 'gt', gt, True)
-    test_frame = frame.head(frame['y'].size-leaveout_size)
-    test_y = test_frame['y'].to_numpy()
-    test_gt = test_frame['gt'].to_numpy()
-    leaveout_frame = frame.tail(leaveout_size)
-    leaveout_y = leaveout_frame['y'].to_numpy()
-    leaveout_gt = leaveout_frame['gt'].to_numpy()
-
-    test = roc_auc_score(test_gt, test_y)
-    leaveout = roc_auc_score(leaveout_gt, leaveout_y)
+    leaveout = None
+    if leaveout_size is not None:
+        leaveout_frame = frame.tail(leaveout_size)
+        leaveout_y = leaveout_frame['y'].to_numpy()
+        leaveout_gt = leaveout_frame['gt'].to_numpy()
+        try:
+            leaveout = roc_auc_score(leaveout_gt, leaveout_y)
+        except:
+            leaveout = None
+        frame = frame.head(frame['y'].size-leaveout_size)
+    test_y = frame['y'].to_numpy()
+    test_gt = frame['gt'].to_numpy()
+    if frame['gt'].dropna().size == test_y.size:
+        try:
+            test = roc_auc_score(test_gt, test_y)
+        except:
+            test = None
+    else:
+        test = None
     return [test, leaveout]  # area under roc curve
 
 
@@ -47,7 +59,7 @@ class PuLearning:
     The Context defines the interface of interest to clients.
     """
 
-    def __init__(self, classifier: Classifier, groundtruth: pd.Series = None):
+    def __init__(self, classifier: Classifier, groundtruth: pd.Series = None, leaveout_df: pd.DataFrame = None):
         """
         Usually, the Context accepts a strategy through the constructor, but
         also provides a setter to change it at runtime.
@@ -55,6 +67,7 @@ class PuLearning:
 
         self._classifier = classifier
         self._groundtruth = groundtruth
+        self._leaveout_df = leaveout_df
 
     def train(self, X: pd.Series, y: pd.Series):
         number_of_iterations = int(configuration.config['PuLearning']['number_of_iterations'])  # T
@@ -67,17 +80,11 @@ class PuLearning:
         positive_df = data[data['y'] == 1]  # P = experimental data
         unlabeled_df = data[data['y'] == 0]  # U
 
-        size_pos = positive_df['y'].size
-        size_unl = unlabeled_df['y'].size
-
-        # select some leaveout data and separate them from the positive data
-        leaveout_test_ratio = float(configuration.config['PuLearning']['leaveout_test_ratio'])
-        leaveout_df = positive_df.sample(frac=leaveout_test_ratio, random_state=4242)
-        positive_df = positive_df.drop(index=leaveout_df.index)
-
-        # save leaveout indices globally
-        global leaveout_size
-        leaveout_size = leaveout_df['y'].size
+        # separate leaveout data from the positive data
+        if self._leaveout_df is not None:
+            # save leaveout indices globally
+            global leaveout_size
+            leaveout_size = self._leaveout_df['y'].size
 
         # initialise prediction_score with ids and initially set all to zero
         y_for_frame = copy.deepcopy(y)
@@ -86,6 +93,7 @@ class PuLearning:
             prediction_score[col].values[:] = 0
 
         all_null = copy.deepcopy(prediction_score)
+        y_leaveout = copy.deepcopy(self._leaveout_df)
 
         # initialise test_results
         test_results = []
@@ -100,16 +108,22 @@ class PuLearning:
             # split data in test, train data and data that needs to be predicted
             test_df, train_df, unlabeled_predict_df = setup_data(i, unlabeled_df, positive_df)
 
-            # add leaveout data to test data
-            test_df = pd.concat([test_df, leaveout_df])
+            # add leaveout data to test data if not None
+            if self._leaveout_df is not None:
+                test_df = pd.concat([test_df, self._leaveout_df])
 
             # train classifier with train data
             new_classifier.fit(train_df['X'], train_df['y'])
 
             # test performance with test data if ground truth is given
+            y_test = new_classifier.predict(test_df['X'])
             if self._groundtruth is not None:
-                y_test = new_classifier.predict(test_df['X'])
-                test_results.append(test_performance(y_test, self._groundtruth))  # TODO how to evaluate test data and what to do with leaveout data
+                test_results.append(test_performance(y_test, self._groundtruth))
+            if self._leaveout_df is not None:
+                y_test = y_test.tail(leaveout_size)
+            #else:
+            #    if self._leaveout_df is not None:
+            #        y_test = new_classifier.predict(self._leaveout_df['X'])
 
             # get predictions for unlabeled data
             prediction = new_classifier.predict(unlabeled_predict_df['X'])
@@ -127,7 +141,10 @@ class PuLearning:
         results = all_null[['y', "r"]].sum(axis=1)
         results = results.astype(int)
 
-        all_size = results.size
-        all_size_ones = results.sum() 
+        #y_leaveout.insert(1, "r", y_test, True)
+        if self._leaveout_df is not None:
+            y_leaveout = (y_test > 0.5).astype(int)  # threshold for leaveout data 0.75
+        else:
+            y_leaveout = None
         
-        return results, test_results
+        return results, test_results, y_leaveout
